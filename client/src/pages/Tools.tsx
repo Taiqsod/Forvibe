@@ -2,9 +2,7 @@ import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, RefreshCw, Sparkles, Quote } from "lucide-react";
+import { Copy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,24 +17,7 @@ export default function Tools() {
           <p className="text-muted-foreground">Little utilities to express your vibe</p>
         </div>
 
-        <Tabs defaultValue="fancy-text" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px] mx-auto mb-8 p-1 h-14 bg-white/50 backdrop-blur rounded-full border border-primary/10">
-            <TabsTrigger value="fancy-text" className="rounded-full h-12 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-              <Sparkles className="w-4 h-4 mr-2" /> Fancy Text
-            </TabsTrigger>
-            <TabsTrigger value="quotes" className="rounded-full h-12 data-[state=active]:bg-secondary-foreground data-[state=active]:text-white transition-all">
-              <Quote className="w-4 h-4 mr-2" /> Quotes
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="fancy-text" className="outline-none">
-            <FancyTextGenerator />
-          </TabsContent>
-          
-          <TabsContent value="quotes" className="outline-none">
-            <RandomQuoteGenerator />
-          </TabsContent>
-        </Tabs>
+        <FancyTextGenerator />
       </div>
     </div>
   );
@@ -105,80 +86,6 @@ function FancyTextGenerator() {
   );
 }
 
-function RandomQuoteGenerator() {
-  const [quoteIndex, setQuoteIndex] = useState(0);
-  const { toast } = useToast();
-
-  const quotes = [
-    { text: "The vibes are immaculate today.", author: "The Universe" },
-    { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
-    { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
-    { text: "Do more of what makes you happy.", author: "Unknown" },
-    { text: "Your vibe attracts your tribe.", author: "Modern Proverb" },
-    { text: "Everything you can imagine is real.", author: "Pablo Picasso" },
-    { text: "Stay hungry, stay foolish.", author: "Steve Jobs" },
-    { text: "Life is a daring adventure or nothing at all.", author: "Helen Keller" },
-    { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
-    { text: "Be the energy you want to attract.", author: "Unknown" },
-  ];
-
-  const nextQuote = () => {
-    let newIndex;
-    do {
-      newIndex = Math.floor(Math.random() * quotes.length);
-    } while (newIndex === quoteIndex);
-    setQuoteIndex(newIndex);
-  };
-
-  const currentQuote = quotes[quoteIndex];
-
-  const copyQuote = () => {
-    navigator.clipboard.writeText(`"${currentQuote.text}" — ${currentQuote.author}`);
-    toast({
-      title: "Saved!",
-      description: "Quote copied to clipboard 📜",
-    });
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-panel p-8 md:p-12 rounded-3xl flex flex-col items-center text-center gap-8 min-h-[400px] justify-center relative overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 p-32 bg-secondary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 p-24 bg-primary/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
-      <Quote className="w-12 h-12 text-primary/20" />
-      
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={quoteIndex}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 0.3 }}
-          className="max-w-xl"
-        >
-          <h2 className="text-2xl md:text-4xl font-display font-bold leading-tight mb-6">
-            "{currentQuote.text}"
-          </h2>
-          <p className="text-lg text-muted-foreground font-medium">— {currentQuote.author}</p>
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="flex gap-4 mt-4 relative z-10">
-        <Button onClick={copyQuote} variant="outline" className="rounded-full px-6">
-          <Copy className="w-4 h-4 mr-2" /> Copy
-        </Button>
-        <Button onClick={nextQuote} className="rounded-full px-6 bg-secondary text-secondary-foreground hover:bg-secondary/80">
-          <RefreshCw className="w-4 h-4 mr-2" /> Next Vibe
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
 // Helper utilities for fancy text
 // Simplified version for demo - a real library would be more robust
 function toUnicodeVariant(str: string, variant: string) {
@@ -212,6 +119,6 @@ function flipString(str: string) {
     'Q': 'b', 'R': 'ɹ', 'S': 'S', 'T': '┴', 'U': '∩', 'V': 'Λ', 'W': 'M',
     'X': 'X', 'Y': '⅄', 'Z': 'Z', '?': '¿', '!': '¡', '.': '˙', '_': '‾'
   };
-  
+
   return str.split('').reverse().map(char => map[char] || char).join('');
 }
