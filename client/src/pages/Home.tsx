@@ -93,7 +93,7 @@ export default function Home() {
       </main>
       
       <footer className="py-8 text-center text-muted-foreground text-sm font-medium">
-        <p>© 2026 Forvibe, made with by Taiqsod</p>
+        <p>© 2026 Forvibe, made by Taiqsod</p>
       </footer>
     </div>
   );
