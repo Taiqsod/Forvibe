@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Gamepad2, PenTool, Info } from "lucide-react";
+import { Home, Gamepad2, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -10,7 +10,6 @@ export function Navigation() {
     { href: "/", label: "Home", icon: Home },
     { href: "/games", label: "Games", icon: Gamepad2 },
     { href: "/tools", label: "Tools", icon: PenTool },
-    { href: "/about", label: "About", icon: Info },
   ];
 
   return (
@@ -37,9 +36,9 @@ export function Navigation() {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className="relative z-10 flex flex-col items-center gap-0.5">
+                <span className="relative z-10 flex items-center gap-2">
                   <Icon className={cn("w-5 h-5", isActive && "scale-110 transition-transform")} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:block">
+                  <span className="text-xs font-bold uppercase tracking-wider hidden sm:block">
                     {link.label}
                   </span>
                 </span>

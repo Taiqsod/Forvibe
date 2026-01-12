@@ -32,7 +32,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              A creative playground for relaxing, playing simple games, and finding your flow state.
+              A creative playground for relaxing, playing simple games, and vibing
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -93,7 +93,7 @@ export default function Home() {
       </main>
       
       <footer className="py-8 text-center text-muted-foreground text-sm font-medium">
-        <p>© 2024 forvibe. Made with ✨ and ☕</p>
+        <p>© 2026 Forvibe, made with by Taiqsod</p>
       </footer>
     </div>
   );
