@@ -31,13 +31,13 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/games">
-                <Button size="lg" className="rounded-full px-8 h-14 text-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
+              <Link href="/games" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto rounded-full px-8 h-14 text-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-1" data-testid="button-play-games">
                   Play Games <Zap className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Link href="/tools">
-                <Button size="lg" variant="outline" className="rounded-full px-8 h-14 text-lg border-2 hover:bg-secondary/20 hover:text-secondary-foreground transition-all">
+              <Link href="/tools" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 h-14 text-lg border-2 hover:bg-secondary/20 hover:text-secondary-foreground transition-all" data-testid="button-use-tools">
                   Use Tools <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
