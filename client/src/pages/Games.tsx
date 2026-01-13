@@ -4,12 +4,14 @@ import { GameCard } from "@/components/GameCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { ScoreSubmission } from "@/components/ScoreSubmission";
 import { Button } from "@/components/ui/button";
-import { MousePointer2, Zap, RotateCcw, Timer } from "lucide-react";
+import { MousePointer2, Grid3X3, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 
+const GLYPH_SHAPES = ["◆", "●", "■", "▲", "★", "♦", "♠", "♣", "♥", "◯", "△", "□"];
+
 export default function Games() {
-  const [activeGame, setActiveGame] = useState<"clicker" | "reaction" | null>(null);
+  const [activeGame, setActiveGame] = useState<"clicker" | "glyph" | null>(null);
   
   return (
     <div className="min-h-screen bg-[url('/grid-pattern.svg')] bg-fixed pb-20">
@@ -22,7 +24,6 @@ export default function Games() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
-          {/* Game Selection / Active Game Area */}
           <div className="lg:col-span-8 space-y-8">
             <div className="grid sm:grid-cols-2 gap-4 mb-8">
               <GameCard 
@@ -34,11 +35,11 @@ export default function Games() {
                 color="purple"
               />
               <GameCard 
-                title="Reaction Test" 
-                description="Wait for green, then click!"
-                icon={Zap}
-                active={activeGame === "reaction"}
-                onClick={() => setActiveGame("reaction")}
+                title="Glyph Match" 
+                description="Match pairs of symbols to level up!"
+                icon={Grid3X3}
+                active={activeGame === "glyph"}
+                onClick={() => setActiveGame("glyph")}
                 color="cyan"
               />
             </div>
@@ -57,15 +58,15 @@ export default function Games() {
                   </motion.div>
                 )}
                 
-                {activeGame === "reaction" && (
+                {activeGame === "glyph" && (
                   <motion.div
-                    key="reaction"
+                    key="glyph"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     className="glass-panel p-8 rounded-3xl h-full border-2 border-accent/20"
                   >
-                    <ReactionGame />
+                    <GlyphGame />
                   </motion.div>
                 )}
 
@@ -82,10 +83,9 @@ export default function Games() {
             </div>
           </div>
 
-          {/* Leaderboards */}
           <div className="lg:col-span-4 space-y-6">
             <Leaderboard gameName="clicker" gameLabel="Click Mania" />
-            <Leaderboard gameName="reaction" gameLabel="Reaction Test" />
+            <Leaderboard gameName="glyph" gameLabel="Glyph Match" />
           </div>
         </div>
       </div>
@@ -138,7 +138,6 @@ function ClickerGame() {
   const handleClick = () => {
     if (isPlaying) {
       setClicks(prev => prev + 1);
-      // Small vibration/feedback
       if (navigator.vibrate) navigator.vibrate(5);
     }
   };
@@ -163,6 +162,7 @@ function ClickerGame() {
           onClick={startGame} 
           size="lg" 
           className="w-48 h-48 rounded-full text-2xl font-display bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+          data-testid="button-start-clicker"
         >
           Start
         </Button>
@@ -173,6 +173,7 @@ function ClickerGame() {
           whileTap={{ scale: 0.95 }}
           onClick={handleClick}
           className="w-48 h-48 rounded-full text-2xl font-bold bg-gradient-to-br from-primary to-purple-600 text-white shadow-xl shadow-primary/30 flex items-center justify-center flex-col gap-2"
+          data-testid="button-click-target"
         >
           <MousePointer2 className="w-8 h-8" />
           CLICK!
@@ -188,10 +189,10 @@ function ClickerGame() {
           </div>
           
           <div className="flex gap-4 justify-center">
-            <Button onClick={startGame} variant="outline" className="gap-2">
+            <Button onClick={startGame} variant="outline" className="gap-2" data-testid="button-try-again">
               <RotateCcw className="w-4 h-4" /> Try Again
             </Button>
-            <Button onClick={() => setShowSubmit(true)} className="gap-2 bg-primary">
+            <Button onClick={() => setShowSubmit(true)} className="gap-2 bg-primary" data-testid="button-submit-score">
               <TrophyIcon className="w-4 h-4" /> Submit Score
             </Button>
           </div>
@@ -209,138 +210,184 @@ function ClickerGame() {
   );
 }
 
-function ReactionGame() {
-  const [gameState, setGameState] = useState<"waiting" | "ready" | "clicked" | "early">("waiting");
-  const [startTime, setStartTime] = useState(0);
-  const [reactionTime, setReactionTime] = useState<number | null>(null);
+interface Card {
+  id: number;
+  shape: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+}
+
+function GlyphGame() {
+  const [level, setLevel] = useState(1);
+  const [score, setScore] = useState(0);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [matchedPairs, setMatchedPairs] = useState(0);
+  const [moves, setMoves] = useState(0);
+  const [gameState, setGameState] = useState<"idle" | "playing" | "complete">("idle");
   const [showSubmit, setShowSubmit] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
+  const getPairsForLevel = (lvl: number) => Math.min(2 + lvl, 8);
+  const pairsForLevel = getPairsForLevel(level);
 
-  const startTest = () => {
-    setGameState("waiting");
-    setReactionTime(null);
+  const initializeGame = (forLevel?: number) => {
+    const lvl = forLevel ?? level;
+    const pairs = getPairsForLevel(lvl);
+    const shapes = GLYPH_SHAPES.slice(0, pairs);
+    const cardPairs = [...shapes, ...shapes];
+    const shuffled = cardPairs.sort(() => Math.random() - 0.5);
     
-    // Random delay between 2-5 seconds
-    const delay = 2000 + Math.random() * 3000;
-    
-    timeoutRef.current = setTimeout(() => {
-      setGameState("ready");
-      setStartTime(Date.now());
-    }, delay);
+    setCards(shuffled.map((shape, idx) => ({
+      id: idx,
+      shape,
+      isFlipped: false,
+      isMatched: false,
+    })));
+    setFlippedCards([]);
+    setMatchedPairs(0);
+    setMoves(0);
+    setGameState("playing");
   };
 
-  const handleClick = () => {
-    if (gameState === "waiting") {
-      setGameState("early");
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      return;
-    }
+  const handleCardClick = (cardId: number) => {
+    if (gameState !== "playing") return;
+    if (flippedCards.length >= 2) return;
+    if (cards[cardId].isFlipped || cards[cardId].isMatched) return;
 
-    if (gameState === "ready") {
-      const endTime = Date.now();
-      const time = endTime - startTime;
-      setReactionTime(time);
-      setGameState("clicked");
+    const newCards = [...cards];
+    newCards[cardId].isFlipped = true;
+    setCards(newCards);
+    
+    const newFlipped = [...flippedCards, cardId];
+    setFlippedCards(newFlipped);
+
+    if (newFlipped.length === 2) {
+      setMoves(m => m + 1);
+      const [first, second] = newFlipped;
       
-      if (time < 300) { // Good reaction
-        confetti({
-          particleCount: 50,
-          spread: 40,
-          origin: { y: 0.6 }
-        });
+      if (cards[first].shape === cards[second].shape) {
+        setTimeout(() => {
+          const matched = [...cards];
+          matched[first].isMatched = true;
+          matched[second].isMatched = true;
+          setCards(matched);
+          setMatchedPairs(p => p + 1);
+          setFlippedCards([]);
+          setScore(s => s + (100 * level));
+
+          if (matchedPairs + 1 === pairsForLevel) {
+            confetti({ particleCount: 100, spread: 50 });
+            setGameState("complete");
+          }
+        }, 300);
+      } else {
+        setTimeout(() => {
+          const reset = [...cards];
+          reset[first].isFlipped = false;
+          reset[second].isFlipped = false;
+          setCards(reset);
+          setFlippedCards([]);
+        }, 800);
       }
     }
   };
 
+  const nextLevel = () => {
+    const newLevel = level + 1;
+    setLevel(newLevel);
+    initializeGame(newLevel);
+  };
+
+  const resetGame = () => {
+    setLevel(1);
+    setScore(0);
+    initializeGame(1);
+  };
+
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6">
-      <div 
-        onClick={handleClick}
-        className={`
-          w-full max-w-lg aspect-square sm:aspect-video rounded-3xl cursor-pointer
-          flex flex-col items-center justify-center text-center p-8 transition-all duration-200 shadow-2xl
-          ${gameState === "waiting" ? "bg-red-500 hover:bg-red-600 text-white" : ""}
-          ${gameState === "ready" ? "bg-green-500 text-white scale-[1.02]" : ""}
-          ${gameState === "clicked" ? "bg-accent text-accent-foreground" : ""}
-          ${gameState === "early" ? "bg-orange-500 text-white" : ""}
-          ${!gameState && "bg-muted text-muted-foreground"}
-        `}
-      >
-        {gameState === "waiting" && (
-          <>
-            <Timer className="w-16 h-16 mb-4 animate-pulse" />
-            <h3 className="text-3xl font-bold">Wait for Green...</h3>
-          </>
-        )}
-        
-        {gameState === "ready" && (
-          <>
-            <Zap className="w-16 h-16 mb-4 scale-150" />
-            <h3 className="text-4xl font-bold">CLICK NOW!</h3>
-          </>
-        )}
-        
-        {gameState === "early" && (
-          <>
-            <RotateCcw className="w-12 h-12 mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Too Early!</h3>
-            <p>Click to try again</p>
-          </>
-        )}
-        
-        {gameState === "clicked" && reactionTime && (
-          <div className="space-y-4">
-            <h3 className="text-2xl font-medium">Reaction Time</h3>
-            <p className="text-6xl font-mono font-bold">{reactionTime}ms</p>
-            <p className="text-lg opacity-80">Click to restart</p>
-            <div className="flex gap-2 justify-center mt-4" onClick={e => e.stopPropagation()}>
-              <Button onClick={() => setShowSubmit(true)} className="bg-primary hover:bg-primary/90 text-white">
-                Submit Score
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {!gameState && (
-          <Button size="lg" onClick={startTest}>Start Test</Button>
-        )}
+    <div className="flex flex-col items-center gap-6">
+      <div className="flex items-center justify-between w-full max-w-lg px-4">
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">Level</span>
+          <span className="text-2xl font-bold text-primary">{level}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">Score</span>
+          <span className="text-2xl font-bold font-mono">{score}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">Moves</span>
+          <span className="text-2xl font-bold font-mono">{moves}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">Pairs</span>
+          <span className="text-2xl font-bold">{matchedPairs}/{pairsForLevel}</span>
+        </div>
       </div>
 
-      {/* Initial Start Button when first loading component */}
-      {!reactionTime && gameState === "clicked" && (
-        <Button size="lg" onClick={startTest} className="mt-4">
-          Start Test
+      {gameState === "idle" && (
+        <Button 
+          onClick={initializeGame} 
+          size="lg" 
+          className="rounded-full px-8 h-14 text-lg"
+          data-testid="button-start-glyph"
+        >
+          Start Game
         </Button>
       )}
-      
-      {/* Reset for early click */}
-      {gameState === "early" && (
-        <Button variant="outline" onClick={startTest}>Try Again</Button>
+
+      {gameState === "playing" && (
+        <div className={`grid gap-3 ${pairsForLevel <= 4 ? 'grid-cols-4' : 'grid-cols-4 sm:grid-cols-5'}`}>
+          {cards.map((card) => (
+            <motion.button
+              key={card.id}
+              onClick={() => handleCardClick(card.id)}
+              whileTap={{ scale: 0.95 }}
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl text-3xl font-bold flex items-center justify-center transition-all duration-200 ${
+                card.isMatched 
+                  ? "bg-green-500/30 text-green-600 border-2 border-green-500" 
+                  : card.isFlipped 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted hover:bg-muted/80 text-transparent"
+              }`}
+              data-testid={`card-${card.id}`}
+            >
+              {(card.isFlipped || card.isMatched) ? card.shape : "?"}
+            </motion.button>
+          ))}
+        </div>
       )}
 
-      {/* Start button for fresh state */}
-      {gameState === null && (
-        <Button size="lg" onClick={startTest}>Start Reaction Test</Button>
+      {gameState === "complete" && (
+        <div className="text-center space-y-4">
+          <h3 className="text-2xl font-bold text-primary">Level Complete!</h3>
+          <p className="text-muted-foreground">Completed in {moves} moves</p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={nextLevel} className="gap-2" data-testid="button-next-level">
+              Next Level
+            </Button>
+            <Button onClick={() => setShowSubmit(true)} variant="outline" data-testid="button-submit-glyph">
+              Submit Score
+            </Button>
+            <Button onClick={resetGame} variant="ghost" data-testid="button-reset-glyph">
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       )}
 
       <ScoreSubmission 
         isOpen={showSubmit}
         onClose={() => setShowSubmit(false)}
-        score={reactionTime || 0}
-        gameName="reaction"
-        gameLabel="Reaction Test"
+        score={score}
+        gameName="glyph"
+        gameLabel="Glyph Match"
       />
     </div>
   );
 }
 
-function TrophyIcon(props: any) {
+function TrophyIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -361,5 +408,5 @@ function TrophyIcon(props: any) {
       <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
       <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
     </svg>
-  )
+  );
 }
