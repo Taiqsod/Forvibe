@@ -4,9 +4,16 @@ import { GameCard } from "@/components/GameCard";
 import { Leaderboard } from "@/components/Leaderboard";
 import { ScoreSubmission } from "@/components/ScoreSubmission";
 import { Button } from "@/components/ui/button";
-import { MousePointer2, Grid3X3, RotateCcw } from "lucide-react";
+import { MousePointer2, Grid3X3, RotateCcw, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const GLYPH_SHAPES = ["◆", "●", "■", "▲", "★", "♦", "♠", "♣", "♥", "◯", "△", "□"];
 
@@ -54,6 +61,18 @@ export default function Games() {
                     exit={{ opacity: 0, y: -20 }}
                     className="glass-panel p-8 rounded-3xl h-full border-2 border-primary/10"
                   >
+                    <div className="flex justify-end mb-2">
+                      <GameHelp 
+                        title="How to Play Click Mania"
+                        instructions={[
+                          "Click the 'Start' button to begin the game",
+                          "Click the big purple button as fast as you can",
+                          "You have 10 seconds to get as many clicks as possible",
+                          "Your final score is the total number of clicks",
+                          "Submit your score to the leaderboard to compete with others!"
+                        ]}
+                      />
+                    </div>
                     <ClickerGame />
                   </motion.div>
                 )}
@@ -66,6 +85,20 @@ export default function Games() {
                     exit={{ opacity: 0, y: -20 }}
                     className="glass-panel p-8 rounded-3xl h-full border-2 border-accent/20"
                   >
+                    <div className="flex justify-end mb-2">
+                      <GameHelp 
+                        title="How to Play Glyph Match"
+                        instructions={[
+                          "Click 'Start Game' to begin",
+                          "Click on cards to flip them and reveal symbols",
+                          "Find matching pairs of symbols",
+                          "Try to match all pairs using the fewest moves",
+                          "Complete a level to advance - each level adds more pairs!",
+                          "Your score increases based on performance",
+                          "Reach level 8 for the maximum challenge (8 pairs)"
+                        ]}
+                      />
+                    </div>
                     <GlyphGame />
                   </motion.div>
                 )}
@@ -384,6 +417,36 @@ function GlyphGame() {
         gameLabel="Glyph Match"
       />
     </div>
+  );
+}
+
+function GameHelp({ title, instructions }: { title: string; instructions: string[] }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-foreground" data-testid="button-game-help">
+          <HelpCircle className="w-5 h-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-primary" />
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 pt-4">
+          {instructions.map((instruction, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">
+                {idx + 1}
+              </span>
+              <p className="text-sm text-muted-foreground pt-0.5">{instruction}</p>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
