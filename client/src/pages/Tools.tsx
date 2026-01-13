@@ -264,6 +264,7 @@ function AIChatbot() {
           Chat with AI
         </h3>
         <p className="text-sm text-muted-foreground">Ask anything, or share an image for analysis</p>
+        <p className="text-xs text-muted-foreground/70 mt-1">Note: AI is still in beta phase</p>
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
