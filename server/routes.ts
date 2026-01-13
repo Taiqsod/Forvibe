@@ -3,6 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { registerChatRoutes } from "./replit_integrations/chat";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -30,6 +31,9 @@ export async function registerRoutes(
       throw err;
     }
   });
+
+  // Register chat routes for AI chatbot
+  registerChatRoutes(app);
 
   return httpServer;
 }
