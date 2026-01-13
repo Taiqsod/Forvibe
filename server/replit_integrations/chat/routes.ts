@@ -63,26 +63,43 @@ export function registerChatRoutes(app: Express): void {
   app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const { content } = req.body;
+      const { content, imageUrl } = req.body;
 
       // Save user message
-      await chatStorage.createMessage(conversationId, "user", content);
+      await chatStorage.createMessage(conversationId, "user", content || "[Image]");
 
       // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
-      const chatMessages = messages.map((m) => ({
+      
+      // Build chat messages with image support for the latest message
+      const chatMessages: any[] = messages.slice(0, -1).map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
       }));
+
+      // Add the latest user message with optional image
+      if (imageUrl) {
+        const messageContent: any[] = [];
+        if (content) {
+          messageContent.push({ type: "text", text: content });
+        }
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: imageUrl },
+        });
+        chatMessages.push({ role: "user", content: messageContent });
+      } else {
+        chatMessages.push({ role: "user", content: content });
+      }
 
       // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      // Stream response from OpenAI
+      // Stream response from OpenAI (use vision-capable model for images)
       const stream = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: imageUrl ? "gpt-5.1" : "gpt-5.1",
         messages: chatMessages,
         stream: true,
         max_completion_tokens: 2048,

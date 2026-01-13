@@ -27,7 +27,10 @@ export default function Games() {
       <div className="container mx-auto px-4 pt-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-display text-gradient mb-4">Arcade</h1>
-          <p className="text-muted-foreground">Challenge yourself and top the leaderboards</p>
+          <p className="text-muted-foreground mb-4">Challenge yourself and top the leaderboards</p>
+          <p className="text-sm text-muted-foreground/70 max-w-xl mx-auto italic">
+            Note: All games are still in beta phase. More games will be added soon! Expect more rewards and incentives for top players.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
@@ -376,12 +379,12 @@ function GlyphGame() {
               key={card.id}
               onClick={() => handleCardClick(card.id)}
               whileTap={{ scale: 0.95 }}
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl text-3xl font-bold flex items-center justify-center transition-all duration-200 ${
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl text-3xl font-bold flex items-center justify-center transition-all duration-200 shadow-md ${
                 card.isMatched 
-                  ? "bg-green-500/30 text-green-600 border-2 border-green-500" 
+                  ? "bg-green-500/20 text-green-600 border-2 border-green-500 shadow-green-500/20" 
                   : card.isFlipped 
-                    ? "bg-primary text-primary-foreground" 
-                    : "bg-muted hover:bg-muted/80 text-transparent"
+                    ? "bg-primary text-primary-foreground shadow-primary/30" 
+                    : "bg-white dark:bg-slate-800 border-2 border-primary/20 hover:border-primary/40 text-primary/30 hover:shadow-lg"
               }`}
               data-testid={`card-${card.id}`}
             >

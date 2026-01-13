@@ -3,7 +3,7 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Sparkles, MessageCircle, Send, Loader2 } from "lucide-react";
+import { Copy, Sparkles, MessageCircle, Send, Loader2, ImagePlus, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -110,6 +110,7 @@ function FancyTextGenerator() {
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  imageUrl?: string;
 }
 
 function formatAIResponse(text: string): string {
@@ -126,8 +127,32 @@ function AIChatbot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Error", description: "Image must be less than 5MB", variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -152,11 +177,16 @@ function AIChatbot() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !selectedImage) || isLoading) return;
 
     const userMessage = input.trim();
+    const imageToSend = selectedImage;
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setMessages(prev => [...prev, { role: "user", content: userMessage, imageUrl: imageToSend || undefined }]);
     setIsLoading(true);
 
     try {
@@ -172,7 +202,7 @@ function AIChatbot() {
       const res = await fetch(`/api/conversations/${convId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: userMessage }),
+        body: JSON.stringify({ content: userMessage, imageUrl: imageToSend }),
       });
 
       if (!res.ok) throw new Error("Failed to send message");
@@ -233,7 +263,7 @@ function AIChatbot() {
           <MessageCircle className="w-5 h-5 text-primary" />
           Chat with AI
         </h3>
-        <p className="text-sm text-muted-foreground">Ask anything, get creative responses</p>
+        <p className="text-sm text-muted-foreground">Ask anything, or share an image for analysis</p>
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
@@ -259,7 +289,14 @@ function AIChatbot() {
                 }`}
                 data-testid={`message-${msg.role}-${idx}`}
               >
-                <p className="whitespace-pre-wrap">{formatAIResponse(msg.content)}</p>
+                {msg.imageUrl && (
+                  <img 
+                    src={msg.imageUrl} 
+                    alt="Uploaded" 
+                    className="max-w-full max-h-48 rounded-lg mb-2 object-contain"
+                  />
+                )}
+                {msg.content && <p className="whitespace-pre-wrap">{formatAIResponse(msg.content)}</p>}
               </div>
             </div>
           ))}
@@ -275,7 +312,41 @@ function AIChatbot() {
       </ScrollArea>
 
       <div className="p-4 border-t border-primary/10 bg-white/50 dark:bg-white/5">
+        {selectedImage && (
+          <div className="mb-3 relative inline-block">
+            <img 
+              src={selectedImage} 
+              alt="Selected" 
+              className="max-h-24 rounded-lg object-contain border border-primary/20"
+            />
+            <button
+              onClick={removeImage}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md hover:bg-destructive/90"
+              data-testid="button-remove-image"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         <div className="flex gap-2">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            ref={fileInputRef}
+            className="hidden"
+            data-testid="input-image-upload"
+          />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+            size="icon"
+            className="rounded-full flex-shrink-0"
+            disabled={isLoading}
+            data-testid="button-add-image"
+          >
+            <ImagePlus className="w-4 h-4" />
+          </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -287,7 +358,7 @@ function AIChatbot() {
           />
           <Button 
             onClick={sendMessage} 
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && !selectedImage) || isLoading}
             className="rounded-full"
             size="icon"
             data-testid="button-send-message"
