@@ -112,6 +112,15 @@ interface ChatMessage {
   content: string;
 }
 
+function formatAIResponse(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/`(.*?)`/g, '$1');
+}
+
 function AIChatbot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -250,7 +259,7 @@ function AIChatbot() {
                 }`}
                 data-testid={`message-${msg.role}-${idx}`}
               >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
+                <p className="whitespace-pre-wrap">{formatAIResponse(msg.content)}</p>
               </div>
             </div>
           ))}

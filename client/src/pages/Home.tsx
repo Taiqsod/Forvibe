@@ -3,16 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Zap, Heart } from "lucide-react";
-import heroImg from "@assets/hero.jpg"; // Using import but placeholder for effect
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-[url('/grid-pattern.svg')] bg-fixed">
       <Navigation />
       
-      <main className="container mx-auto px-4 pb-20 pt-10">
+      <main className="container mx-auto px-4 pb-20">
         {/* Hero Section */}
-        <section className="text-center py-20 md:py-32 relative overflow-hidden">
+        <section className="text-center py-16 md:py-24 relative overflow-hidden">
           {/* Decorative floating elements */}
           <div className="absolute top-10 left-10 w-20 h-20 bg-primary/20 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-10 right-10 w-32 h-32 bg-secondary/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
@@ -22,10 +21,6 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur border border-primary/10 text-sm font-medium text-primary mb-8 shadow-sm">
-              <Sparkles className="w-4 h-4" />
-              <span>Welcome to the vibe zone</span>
-            </div>
             
             <h1 className="text-6xl md:text-8xl mb-6 text-gradient font-display leading-tight">
               forvibe
