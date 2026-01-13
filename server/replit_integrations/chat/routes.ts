@@ -71,11 +71,22 @@ export function registerChatRoutes(app: Express): void {
       // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
       
+      // System prompt to guide AI behavior
+      const systemMessage = {
+        role: "system" as const,
+        content: "You are a friendly and creative AI assistant on forvibe, a fun creative playground website. Be helpful, playful, and engaging. When users share images, analyze and describe them thoroughly. You can discuss any image content as long as it doesn't depict illegal activities. Be descriptive and helpful with image analysis - describe what you see, answer questions about the image, and engage creatively with the content."
+      };
+      
       // Build chat messages with image support for the latest message
-      const chatMessages: any[] = messages.slice(0, -1).map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }));
+      const chatMessages: any[] = [systemMessage];
+      
+      // Add conversation history (excluding the latest message we just saved)
+      messages.slice(0, -1).forEach((m) => {
+        chatMessages.push({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        });
+      });
 
       // Add the latest user message with optional image
       if (imageUrl) {
