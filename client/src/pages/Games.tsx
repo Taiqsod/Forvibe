@@ -327,7 +327,7 @@ function GlyphGame() {
 
       {gameState === "idle" && (
         <Button 
-          onClick={initializeGame} 
+          onClick={() => initializeGame()} 
           size="lg" 
           className="rounded-full px-8 h-14 text-lg"
           data-testid="button-start-glyph"
