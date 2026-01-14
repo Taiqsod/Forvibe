@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl, type InsertScore } from "@shared/routes";
+import { api, buildUrl } from "@shared/routes";
+import type { InsertScore } from "@shared/schema";
 
 // GET /api/scores/:gameName
 export function useScores(gameName: string) {
