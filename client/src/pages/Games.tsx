@@ -43,6 +43,7 @@ export default function Games() {
                 active={activeGame === "clicker"}
                 onClick={() => setActiveGame("clicker")}
                 color="purple"
+                gameName="clicker"
               />
               <GameCard 
                 title="Glyph Match" 
@@ -51,6 +52,7 @@ export default function Games() {
                 active={activeGame === "glyph"}
                 onClick={() => setActiveGame("glyph")}
                 color="cyan"
+                gameName="glyph"
               />
             </div>
 

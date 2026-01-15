@@ -1,5 +1,5 @@
 import { useScores } from "@/hooks/use-scores";
-import { Trophy, Medal } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LeaderboardProps {
@@ -47,20 +47,20 @@ export function Leaderboard({ gameName, gameLabel }: LeaderboardProps) {
 
       <div className="space-y-3">
         {sortedScores.map((score, index) => {
-          let rankIcon;
+          let rankDisplay;
           let rankClass = "bg-muted text-muted-foreground";
           
           if (index === 0) {
-            rankIcon = <Medal className="w-5 h-5" />;
+            rankDisplay = <span className="text-lg">🥇</span>;
             rankClass = "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700/50";
           } else if (index === 1) {
-            rankIcon = <Medal className="w-5 h-5" />;
+            rankDisplay = <span className="text-lg">🥈</span>;
             rankClass = "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
           } else if (index === 2) {
-            rankIcon = <Medal className="w-5 h-5" />;
+            rankDisplay = <span className="text-lg">🥉</span>;
             rankClass = "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50";
           } else {
-            rankIcon = <span className="text-sm font-bold font-mono">#{index + 1}</span>;
+            rankDisplay = <span className="text-sm font-bold font-mono">#{index + 1}</span>;
           }
 
           return (
@@ -70,7 +70,7 @@ export function Leaderboard({ gameName, gameLabel }: LeaderboardProps) {
             >
               <div className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${rankClass}`}>
-                  {rankIcon}
+                  {rankDisplay}
                 </div>
                 <div className="font-bold">
                   {score.playerName}
