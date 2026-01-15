@@ -5,7 +5,8 @@ import { eq } from 'drizzle-orm';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL || process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -58,26 +59,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       chatMessages.push({ role: 'user', content: content });
     }
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    const stream = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: chatMessages,
-      stream: true,
       max_tokens: 2048,
     });
 
-    let fullResponse = '';
-
-    for await (const chunk of stream) {
-      const chunkContent = chunk.choices[0]?.delta?.content || '';
-      if (chunkContent) {
-        fullResponse += chunkContent;
-        res.write(`data: ${JSON.stringify({ content: chunkContent })}\n\n`);
-      }
-    }
+    const fullResponse = completion.choices[0]?.message?.content || '';
 
     await db.insert(messages).values({
       conversationId,
@@ -85,15 +73,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       content: fullResponse,
     });
 
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-    res.end();
+    return res.status(200).json({ content: fullResponse, done: true });
   } catch (error) {
     console.error('Error sending message:', error);
-    if (res.headersSent) {
-      res.write(`data: ${JSON.stringify({ error: 'Failed to send message' })}\n\n`);
-      res.end();
-    } else {
-      res.status(500).json({ error: 'Failed to send message' });
-    }
+    return res.status(500).json({ error: 'Failed to send message' });
   }
 }
