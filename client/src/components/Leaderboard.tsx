@@ -1,6 +1,5 @@
 import { useScores } from "@/hooks/use-scores";
-import { format } from "date-fns";
-import { Trophy, Medal, User } from "lucide-react";
+import { Trophy, Medal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LeaderboardProps {
@@ -73,14 +72,8 @@ export function Leaderboard({ gameName, gameLabel }: LeaderboardProps) {
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${rankClass}`}>
                   {rankIcon}
                 </div>
-                <div>
-                  <div className="font-bold flex items-center gap-2">
-                    {score.playerName}
-                    {index === 0 && <span className="text-[10px] uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full">King</span>}
-                  </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    {score.createdAt ? format(new Date(score.createdAt), 'MMM d') : 'Recent'}
-                  </div>
+                <div className="font-bold">
+                  {score.playerName}
                 </div>
               </div>
               <div className="font-mono font-bold text-lg text-primary">
