@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Navigation } from "@/components/Navigation";
 import { GameCard } from "@/components/GameCard";
-import { Leaderboard } from "@/components/Leaderboard";
 import { ScoreSubmission } from "@/components/ScoreSubmission";
 import { Button } from "@/components/ui/button";
-import { MousePointer2, Grid3X3, RotateCcw, HelpCircle } from "lucide-react";
+import { MousePointer2, Grid3X3, RotateCcw, HelpCircle, Zap, Target } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
@@ -33,97 +32,110 @@ export default function Games() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
-          <div className="lg:col-span-8 space-y-8">
-            <div className="grid sm:grid-cols-2 gap-4 mb-8">
-              <GameCard 
-                title="Click Mania" 
-                description="Click as fast as you can in 10 seconds!"
-                icon={MousePointer2}
-                active={activeGame === "clicker"}
-                onClick={() => setActiveGame("clicker")}
-                color="purple"
-                gameName="clicker"
-              />
-              <GameCard 
-                title="Glyph Match" 
-                description="Match pairs of symbols to level up!"
-                icon={Grid3X3}
-                active={activeGame === "glyph"}
-                onClick={() => setActiveGame("glyph")}
-                color="cyan"
-                gameName="glyph"
-              />
-            </div>
-
-            <div className="min-h-[400px]">
-              <AnimatePresence mode="wait">
-                {activeGame === "clicker" && (
-                  <motion.div
-                    key="clicker"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="glass-panel p-8 rounded-3xl h-full border-2 border-primary/10"
-                  >
-                    <div className="flex justify-end mb-2">
-                      <GameHelp 
-                        title="How to Play Click Mania"
-                        instructions={[
-                          "Click the 'Start' button to begin the game",
-                          "Click the big purple button as fast as you can",
-                          "You have 10 seconds to get as many clicks as possible",
-                          "Your final score is the total number of clicks",
-                          "Submit your score to the leaderboard to compete with others!"
-                        ]}
-                      />
-                    </div>
-                    <ClickerGame />
-                  </motion.div>
-                )}
-                
-                {activeGame === "glyph" && (
-                  <motion.div
-                    key="glyph"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="glass-panel p-8 rounded-3xl h-full border-2 border-accent/20"
-                  >
-                    <div className="flex justify-end mb-2">
-                      <GameHelp 
-                        title="How to Play Glyph Match"
-                        instructions={[
-                          "Click 'Start Game' to begin",
-                          "Click on cards to flip them and reveal symbols",
-                          "Find matching pairs of symbols",
-                          "Try to match all pairs using the fewest moves",
-                          "Complete a level to advance - each level adds more pairs!",
-                          "Your score increases based on performance",
-                          "Reach level 8 for the maximum challenge (8 pairs)"
-                        ]}
-                      />
-                    </div>
-                    <GlyphGame />
-                  </motion.div>
-                )}
-
-                {!activeGame && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="h-full flex items-center justify-center text-muted-foreground/50 border-2 border-dashed border-muted-foreground/20 rounded-3xl p-12"
-                  >
-                    Select a game to start playing
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="grid sm:grid-cols-2 gap-6">
+            <GameCard 
+              title="Click Mania" 
+              description="Click as fast as you can in 10 seconds!"
+              icon={MousePointer2}
+              active={activeGame === "clicker"}
+              onClick={() => setActiveGame("clicker")}
+              color="purple"
+              gameName="clicker"
+            />
+            <GameCard 
+              title="Glyph Match" 
+              description="Match pairs of symbols to level up!"
+              icon={Grid3X3}
+              active={activeGame === "glyph"}
+              onClick={() => setActiveGame("glyph")}
+              color="cyan"
+              gameName="glyph"
+            />
           </div>
 
-          <div className="lg:col-span-4 space-y-6">
-            <Leaderboard gameName="clicker" gameLabel="Click Mania" />
-            <Leaderboard gameName="glyph" gameLabel="Glyph Match" />
+          <div className="min-h-[450px]">
+            <AnimatePresence mode="wait">
+              {activeGame === "clicker" && (
+                <motion.div
+                  key="clicker"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="bg-gradient-to-br from-purple-500/10 via-background to-fuchsia-500/10 backdrop-blur-sm p-8 rounded-3xl border-2 border-purple-400/30 shadow-xl shadow-purple-500/10"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-purple-500">
+                      <Zap className="w-5 h-5" />
+                      <span className="font-bold text-sm uppercase tracking-wider">Speed Challenge</span>
+                    </div>
+                    <GameHelp 
+                      title="How to Play Click Mania"
+                      instructions={[
+                        "Click the 'Start' button to begin the game",
+                        "Click the big purple button as fast as you can",
+                        "You have 10 seconds to get as many clicks as possible",
+                        "Your final score is the total number of clicks",
+                        "Submit your score to the leaderboard to compete with others!"
+                      ]}
+                    />
+                  </div>
+                  <ClickerGame />
+                </motion.div>
+              )}
+              
+              {activeGame === "glyph" && (
+                <motion.div
+                  key="glyph"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="bg-gradient-to-br from-cyan-500/10 via-background to-teal-500/10 backdrop-blur-sm p-8 rounded-3xl border-2 border-cyan-400/30 shadow-xl shadow-cyan-500/10"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-cyan-500">
+                      <Target className="w-5 h-5" />
+                      <span className="font-bold text-sm uppercase tracking-wider">Memory Challenge</span>
+                    </div>
+                    <GameHelp 
+                      title="How to Play Glyph Match"
+                      instructions={[
+                        "Click 'Start Game' to begin",
+                        "Click on cards to flip them and reveal symbols",
+                        "Find matching pairs of symbols",
+                        "Try to match all pairs using the fewest moves",
+                        "Complete a level to advance - each level adds more pairs!",
+                        "Your score increases based on performance",
+                        "Reach level 8 for the maximum challenge (8 pairs)"
+                      ]}
+                    />
+                  </div>
+                  <GlyphGame />
+                </motion.div>
+              )}
+
+              {!activeGame && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="h-full min-h-[400px] flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/20 rounded-3xl p-12 bg-gradient-to-br from-muted/30 to-muted/10"
+                >
+                  <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    className="mb-4"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                      <MousePointer2 className="w-10 h-10 text-primary/50" />
+                    </div>
+                  </motion.div>
+                  <p className="text-lg font-medium text-muted-foreground mb-2">Ready to play?</p>
+                  <p className="text-sm text-muted-foreground/60">Select a game above to start your challenge</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
